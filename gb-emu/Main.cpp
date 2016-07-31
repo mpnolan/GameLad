@@ -70,6 +70,12 @@ std::cout<<"Render()"<<std::endl;
     byte* pData = emulator.GetCurrentFrame();
     memcpy(pPixels, pData, 160 * 144 * 4);
 
+    // Sample video encode
+    static int frame = 0;
+    if (frame % 4 == 0) {
+      m_encoder.encodeFrame(pPixels);
+    }
+    frame++;
     SDL_UnlockTexture(pTexture);
 
     SDL_RenderCopy(pRenderer, pTexture, nullptr, nullptr);
@@ -77,12 +83,6 @@ std::cout<<"Render()"<<std::endl;
     // Update window
     SDL_RenderPresent(pRenderer);
 
-    // Sample video encode
-    static int frame = 0;
-    if (frame % 4 == 0) {
-      m_encoder.encodeFrame(pPixels);
-    }
-    frame++;
 }
 
 // TODO: refactor this

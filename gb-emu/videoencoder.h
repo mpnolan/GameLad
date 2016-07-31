@@ -47,8 +47,8 @@ class VideoEncoder {
       /* put sample parameters */
       m_context->bit_rate = 400000;
       /* resolution must be a multiple of two */
-      m_context->width = 320;
-      m_context->height = 288;
+      m_context->width = 160;
+      m_context->height = 144;
       /* frames per second */
       m_context->time_base = (AVRational){1,25};
       /* emit one intra frame every ten frames
