@@ -1,5 +1,8 @@
 #include "PCH.hpp"
 #include <Emulator.hpp>
+#include <vlc/vlc.h>
+#include <iostream>
+#include "videoencoder.h"
 
 // Play with this 1/120 is "FAST" and 1/60 is "SLOW"
 const double TimePerFrame = 1.0 / 120.0;
@@ -7,6 +10,15 @@ const double TimePerFrame = 1.0 / 120.0;
 
 // The number of CPU cycles per frame
 const unsigned int CyclesPerFrame = 70224;
+
+struct LibVLCDeleter
+{
+  void operator()(libvlc_instance_t* vlc) {
+    if (vlc != NULL) {
+      libvlc_release(vlc);
+    }
+  }
+};
 
 struct SDLWindowDeleter
 {
@@ -41,8 +53,11 @@ struct SDLTextureDeleter
     }
 };
 
+VideoEncoder m_encoder;
+
 void Render(SDL_Renderer* pRenderer, SDL_Texture* pTexture, Emulator& emulator)
 {
+std::cout<<"Render()"<<std::endl;
     // Clear window
     SDL_SetRenderDrawColor(pRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
     SDL_RenderClear(pRenderer);
@@ -61,12 +76,21 @@ void Render(SDL_Renderer* pRenderer, SDL_Texture* pTexture, Emulator& emulator)
 
     // Update window
     SDL_RenderPresent(pRenderer);
+
+    // Sample video encode
+    static int frame = 0;
+    if (frame % 4 == 0) {
+      m_encoder.encodeFrame(pPixels);
+    }
+    frame++;
 }
 
 // TODO: refactor this
 std::unique_ptr<SDL_Renderer, SDLRendererDeleter> spRenderer;
 std::unique_ptr<SDL_Texture, SDLTextureDeleter> spTexture;
 Emulator emulator;
+// mpn: Indeed
+std::unique_ptr<libvlc_instance_t, LibVLCDeleter> m_vlc;
 
 // The emulator will call this whenever we hit VBlank
 void VSyncCallback()
@@ -218,6 +242,8 @@ int main(int argc, char** argv)
     spTexture = std::unique_ptr<SDL_Texture, SDLTextureDeleter>(
         SDL_CreateTexture(spRenderer.get(), SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, 160, 144));
 
+    m_vlc = std::unique_ptr<libvlc_instance_t, LibVLCDeleter>(libvlc_new(0, NULL));
+
     if (emulator.Initialize(bootROM.empty() ? nullptr : bootROM.data(), romPath.data()))
     {
         emulator.SetVSyncCallback(&VSyncCallback);
@@ -277,3 +303,4 @@ int main(int argc, char** argv)
 
     return 0;
 }
+

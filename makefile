@@ -9,7 +9,7 @@ FRAMEWORK_PATH = /Library/Frameworks
 
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Linux)
-	FRAMEWORKS = -lSDL2
+	FRAMEWORKS = -lSDL2 -lvlc -lavcodec -lavformat -lswscale -lavutil -lm -lz
 else
 	FRAMEWORKS = -framework SDL2
 endif
