@@ -13,11 +13,8 @@ extern "C" {
 class VideoEncoder {
 
   public:
-    VideoEncoder(int fps) {
+    VideoEncoder(int fps) : m_fps(fps), m_pts(0) {
       // Setup the codec and the context
-
-      m_fps = fps;
-      
       avcodec_register_all();
        
       const char* filename = "/tmp/out.mpg";
@@ -52,7 +49,7 @@ class VideoEncoder {
       m_context->width = 160;
       m_context->height = 144;
       /* frames per second */
-      m_context->time_base = (AVRational){1,m_fps};
+      m_context->time_base = (AVRational){1, m_fps};
       /* emit one intra frame every ten frames
        * check frame pict_type before passing frame
        * to encoder, if frame->pict_type is AV_PICTURE_TYPE_I
@@ -64,7 +61,9 @@ class VideoEncoder {
       m_context->pix_fmt = AV_PIX_FMT_YUV420P;
 
       // To convert from emulator RGBA32 to YUV420P
-      m_swscaleContext = sws_getContext(m_context->width, m_context->height, AV_PIX_FMT_RGB32, m_context->width, m_context->height, AV_PIX_FMT_YUV420P, 0, 0, 0, 0);
+      m_swscaleContext = sws_getContext(m_context->width, m_context->height,
+          AV_PIX_FMT_RGB32_1, m_context->width, m_context->height,
+          AV_PIX_FMT_YUV420P, 0, 0, 0, 0);
       if (!m_swscaleContext) {
         fprintf(stderr, "Failed to allocate swscale context\n");
         exit(1);
@@ -88,7 +87,8 @@ class VideoEncoder {
     }
 
     void encodeFrame(uint8_t* data) {
-      int i, ret, x, y, got_output;
+      //int i, ret, x, y, got_output;
+      int ret, got_output;
 
       printf("Encode video frame\n");
 
@@ -187,9 +187,10 @@ class VideoEncoder {
     AVCodec *m_codec;
     AVCodecContext *m_context = NULL;
     FILE *f;
-    int m_pts = 0;
-    int m_fps = 30;
+    int m_fps;
+    int m_pts;
     struct SwsContext* m_swscaleContext;
+    int m_available;
 
 };
 
