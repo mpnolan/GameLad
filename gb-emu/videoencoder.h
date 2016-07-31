@@ -13,8 +13,10 @@ extern "C" {
 class VideoEncoder {
 
   public:
-    VideoEncoder() {
+    VideoEncoder(int fps) {
       // Setup the codec and the context
+
+      m_fps = fps;
       
       avcodec_register_all();
        
@@ -50,7 +52,7 @@ class VideoEncoder {
       m_context->width = 160;
       m_context->height = 144;
       /* frames per second */
-      m_context->time_base = (AVRational){1,25};
+      m_context->time_base = (AVRational){1,m_fps};
       /* emit one intra frame every ten frames
        * check frame pict_type before passing frame
        * to encoder, if frame->pict_type is AV_PICTURE_TYPE_I
@@ -73,10 +75,6 @@ class VideoEncoder {
         fprintf(stderr, "Could not open codec\n");
         exit(1);
       }
-    }
-
-    void setFps(int fps) {
-      m_fps = fps;
     }
 
     int fps() const {

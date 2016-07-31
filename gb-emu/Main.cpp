@@ -54,7 +54,7 @@ struct SDLTextureDeleter
     }
 };
 
-VideoEncoder m_encoder;
+VideoEncoder m_encoder(60);
 
 void Render(SDL_Renderer* pRenderer, SDL_Texture* pTexture, Emulator& emulator)
 {
@@ -73,7 +73,7 @@ void Render(SDL_Renderer* pRenderer, SDL_Texture* pTexture, Emulator& emulator)
     // Sample video encode
     static int frame = 0;
     // Video FPS should be a divisor of game FPS
-    static int skipFrames = (int)(FPS / m_encoder.fps());
+    static int skipFrames = (int)((1.0 * FPS) / m_encoder.fps());
     if (frame % skipFrames == 0) {
       m_encoder.encodeFrame(pPixels);
     }
@@ -160,8 +160,6 @@ int main(int argc, char** argv)
     {
         windowScale = atoi(argv[1]);
     }
-
-    m_encoder.setFps(30);
 
     std::string bootROM;
     //std::string bootROM = "res/games/dmg_bios.bin";
