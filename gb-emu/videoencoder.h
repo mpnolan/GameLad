@@ -75,6 +75,14 @@ class VideoEncoder {
       }
     }
 
+    void setFps(int fps) {
+      m_fps = fps;
+    }
+
+    int fps() const {
+      return m_fps;
+    }
+
     virtual ~VideoEncoder() {
       closeFile();
       avcodec_close(m_context);
@@ -182,6 +190,7 @@ class VideoEncoder {
     AVCodecContext *m_context = NULL;
     FILE *f;
     int m_pts = 0;
+    int m_fps = 30;
     struct SwsContext* m_swscaleContext;
 
 };

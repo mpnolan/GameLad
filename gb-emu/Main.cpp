@@ -5,7 +5,8 @@
 #include "videoencoder.h"
 
 // Play with this 1/120 is "FAST" and 1/60 is "SLOW"
-const double TimePerFrame = 1.0 / 120.0;
+#define FPS 120
+const double TimePerFrame = 1.0 / (1.0 * FPS);
 //const double TimePerFrame = 16.783536 / 1000;
 
 // The number of CPU cycles per frame
@@ -57,7 +58,6 @@ VideoEncoder m_encoder;
 
 void Render(SDL_Renderer* pRenderer, SDL_Texture* pTexture, Emulator& emulator)
 {
-std::cout<<"Render()"<<std::endl;
     // Clear window
     SDL_SetRenderDrawColor(pRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
     SDL_RenderClear(pRenderer);
@@ -72,10 +72,13 @@ std::cout<<"Render()"<<std::endl;
 
     // Sample video encode
     static int frame = 0;
-    if (frame % 4 == 0) {
+    // Video FPS should be a divisor of game FPS
+    static int skipFrames = (int)(FPS / m_encoder.fps());
+    if (frame % skipFrames == 0) {
       m_encoder.encodeFrame(pPixels);
     }
     frame++;
+
     SDL_UnlockTexture(pTexture);
 
     SDL_RenderCopy(pRenderer, pTexture, nullptr, nullptr);
@@ -157,6 +160,8 @@ int main(int argc, char** argv)
     {
         windowScale = atoi(argv[1]);
     }
+
+    m_encoder.setFps(30);
 
     std::string bootROM;
     //std::string bootROM = "res/games/dmg_bios.bin";
