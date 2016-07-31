@@ -54,7 +54,7 @@ struct SDLTextureDeleter
     }
 };
 
-VideoEncoder m_encoder(60);
+VideoEncoder m_encoder;
 
 void Render(SDL_Renderer* pRenderer, SDL_Texture* pTexture, Emulator& emulator)
 {
@@ -160,6 +160,10 @@ int main(int argc, char** argv)
     {
         windowScale = atoi(argv[1]);
     }
+
+    m_encoder.setFps(60);
+    m_encoder.setFilename("/tmp/out.mpg");
+    m_encoder.initialize();
 
     std::string bootROM;
     //std::string bootROM = "res/games/dmg_bios.bin";

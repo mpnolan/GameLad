@@ -13,14 +13,24 @@ extern "C" {
 class VideoEncoder {
 
   public:
-    VideoEncoder(int fps) : m_fps(fps), m_pts(0) {
+    VideoEncoder() : m_fps(60), m_pts(0), m_filename("/tmp/out.mpg") {
+    }
+
+    void setFps(int fps) {
+      m_fps = fps;
+    }
+
+    void setFilename(std::string filename) {
+      m_filename = filename;
+    }
+
+    void initialize() {
       // Setup the codec and the context
       avcodec_register_all();
        
-      const char* filename = "/tmp/out.mpg";
-      f = fopen(filename, "wb");
+      f = fopen(m_filename.c_str(), "wb");
       if (!f) {
-        fprintf(stderr, "Could not open %s\n", filename);
+        fprintf(stderr, "Could not open %s\n", m_filename.c_str());
         exit(1);
       }
 
@@ -191,6 +201,7 @@ class VideoEncoder {
     int m_pts;
     struct SwsContext* m_swscaleContext;
     int m_available;
+    std::string m_filename;
 
 };
 
