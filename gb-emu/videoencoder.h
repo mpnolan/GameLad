@@ -10,10 +10,13 @@ extern "C" {
 #include <libswscale/swscale.h>
 }
 
+#define INPUT_WIDTH 160
+#define INPUT_HEIGHT 144
+
 class VideoEncoder {
 
   public:
-    VideoEncoder() : m_fps(60), m_pts(0), m_filename("/tmp/out.mpg") {
+    VideoEncoder() : m_fps(60), m_pts(0), m_filename("/tmp/out.mpg"), m_scale(8) {
     }
 
     void setFps(int fps) {
@@ -56,8 +59,8 @@ class VideoEncoder {
       /* put sample parameters */
       m_context->bit_rate = 400000;
       /* resolution must be a multiple of two */
-      m_context->width = 160;
-      m_context->height = 144;
+      m_context->width = INPUT_WIDTH * m_scale;
+      m_context->height = INPUT_HEIGHT * m_scale;
       /* frames per second */
       m_context->time_base = (AVRational){1, m_fps};
       /* emit one intra frame every ten frames
@@ -71,9 +74,10 @@ class VideoEncoder {
       m_context->pix_fmt = AV_PIX_FMT_YUV420P;
 
       // To convert from emulator RGBA32 to YUV420P
-      m_swscaleContext = sws_getContext(m_context->width, m_context->height,
+      m_swscaleContext = sws_getContext(INPUT_WIDTH, INPUT_HEIGHT,
           AV_PIX_FMT_RGB32_1, m_context->width, m_context->height,
-          AV_PIX_FMT_YUV420P, 0, 0, 0, 0);
+          AV_PIX_FMT_YUV420P, SWS_BICUBIC, 0, 0, 0);
+
       if (!m_swscaleContext) {
         fprintf(stderr, "Failed to allocate swscale context\n");
         exit(1);
@@ -94,6 +98,7 @@ class VideoEncoder {
       closeFile();
       avcodec_close(m_context);
       av_free(m_context);
+      sws_freeContext(m_swscaleContext);
     }
 
     void encodeFrame(uint8_t* data) {
@@ -108,13 +113,13 @@ class VideoEncoder {
         exit(1);
       }
       frame->format = m_context->pix_fmt;
-      frame->width  = m_context->width;
-      frame->height = m_context->height;
+      frame->width  = INPUT_WIDTH * m_scale;
+      frame->height = INPUT_HEIGHT * m_scale;
 
       /* the image can be allocated by any means and av_image_alloc() is
        * just the most convenient way if av_malloc() is to be used */
-      ret = av_image_alloc(frame->data, frame->linesize, m_context->width,
-          m_context->height, m_context->pix_fmt, 32);
+      ret = av_image_alloc(frame->data, frame->linesize, frame->width, frame->height, m_context->pix_fmt, 32);
+
       if (ret < 0) {
         fprintf(stderr, "Could not allocate raw picture buffer\n");
         exit(1);
@@ -126,26 +131,9 @@ class VideoEncoder {
       pkt.size = 0;
 
       fflush(stdout);
-      /* prepare a dummy image */
-      /* Y */
-      /*for (y = 0; y < m_context->height; y++) {
-        for (x = 0; x < m_context->width; x++) {
-          frame->data[0][y * frame->linesize[0] + x] = x + y + (m_pts % 25) * 3;
-        }
-      }
 
-      // Cb and Cr
-      for (y = 0; y < m_context->height/2; y++) {
-        for (x = 0; x < m_context->width/2; x++) {
-          frame->data[1][y * frame->linesize[1] + x] = 128 + y + (m_pts % 25) * 2;
-          frame->data[2][y * frame->linesize[2] + x] = 64 + x + (m_pts % 25) * 5;
-        }
-      }*/
-
-      // Convert RGBA32 -> YUV420P
-      //uint8_t * inData[1] = { frame->data }; // RGB32 have one plane (?)
-      int inLinesize[1] = { 4*m_context->width }; // RGBA stride
-      sws_scale(m_swscaleContext, (const uint8_t* const*)&data, inLinesize, 0, m_context->height, frame->data, frame->linesize);
+      int inLinesize[1] = { 4 * INPUT_WIDTH }; // RGBA stride
+      sws_scale(m_swscaleContext, (const uint8_t* const*)&data, inLinesize, 0, frame->height, frame->data, frame->linesize);
 
       frame->pts = m_pts;
       m_pts++;
@@ -202,7 +190,7 @@ class VideoEncoder {
     struct SwsContext* m_swscaleContext;
     int m_available;
     std::string m_filename;
+    int m_scale;
 
 };
-
 
