@@ -2,7 +2,7 @@
 #include <Emulator.hpp>
 #include <vlc/vlc.h>
 #include <iostream>
-#include "videoencoder.h"
+#include "videortspencoder.h"
 
 // Play with this 1/120 is "FAST" and 1/60 is "SLOW"
 #define FPS 120
@@ -54,7 +54,7 @@ struct SDLTextureDeleter
     }
 };
 
-VideoEncoder m_encoder;
+VideoRtspEncoder m_encoder;
 
 void Render(SDL_Renderer* pRenderer, SDL_Texture* pTexture, Emulator& emulator)
 {
@@ -162,7 +162,6 @@ int main(int argc, char** argv)
     }
 
     m_encoder.setFps(60);
-    m_encoder.setFilename("/tmp/out.mpg");
     m_encoder.initialize();
 
     std::string bootROM;
