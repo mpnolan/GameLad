@@ -69,8 +69,8 @@ class VideoRtspEncoder {
   int write_frame(AVFormatContext *fmt_ctx, const AVRational *time_base, AVStream *st, AVPacket *pkt)
   {
     /* rescale output packet timestamp values from codec to stream timebase */
-    //pkt->pts = av_rescale_q_rnd(pkt->pts, *time_base, st->time_base, AVRounding(AV_ROUND_NEAR_INF|AV_ROUND_PASS_MINMAX));
-    //pkt->dts = av_rescale_q_rnd(pkt->dts, *time_base, st->time_base, AVRounding(AV_ROUND_NEAR_INF|AV_ROUND_PASS_MINMAX));
+    pkt->pts = av_rescale_q(pkt->pts, *time_base, st->time_base);
+    pkt->dts = av_rescale_q(pkt->dts, *time_base, st->time_base);
     pkt->duration = av_rescale_q(pkt->duration, *time_base, st->time_base);
     pkt->stream_index = st->index;
 
@@ -121,9 +121,11 @@ class VideoRtspEncoder {
          * of which frame timestamps are represented. For fixed-fps content,
          * timebase should be 1/framerate and timestamp increments should be
          * identical to 1. */
-        c->time_base.den = STREAM_FRAME_RATE;
+        c->time_base.den = m_fps;
         c->time_base.num = 1;
-        c->gop_size      = 66; /* emit one intra frame every twelve frames at most */
+        st->time_base.den = m_fps;
+        st->time_base.num = 1;
+        c->gop_size      = 2 * m_fps; /* Wowza says to make it fps or 2*fps */
         c->pix_fmt       = STREAM_PIX_FMT;
         if (c->codec_id == AV_CODEC_ID_MPEG2VIDEO) {
           /* just for testing, we also add B frames */

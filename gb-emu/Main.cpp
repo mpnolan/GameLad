@@ -5,7 +5,7 @@
 #include "videortspencoder.h"
 
 // Play with this 1/120 is "FAST" and 1/60 is "SLOW"
-#define FPS 120
+#define FPS 60
 const double TimePerFrame = 1.0 / (1.0 * FPS);
 //const double TimePerFrame = 16.783536 / 1000;
 
@@ -161,7 +161,7 @@ int main(int argc, char** argv)
         windowScale = atoi(argv[1]);
     }
 
-    m_encoder.setFps(60);
+    m_encoder.setFps(FPS);
     m_encoder.initialize();
 
     std::string bootROM;
