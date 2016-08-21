@@ -28,6 +28,7 @@ extern "C"
 #include <libavutil/samplefmt.h>
 #include <libavutil/channel_layout.h>
 #include <libavutil/common.h>
+#include <libavutil/avstring.h>
 
 
 
@@ -341,13 +342,14 @@ class VideoRtspEncoder {
     av_register_all();
     avformat_network_init();
 
-    /* allocate the output media context */
-    avformat_alloc_output_context2(&oc, NULL, "rtsp", filename);
-
+    oc = avformat_alloc_context();
     if (!oc) {
-      printf("Could not deduce output format from file extension: using MPEG.\n");
-      avformat_alloc_output_context2(&oc, NULL, "mpeg", filename);
+      fprintf(stderr, "Error creating output context; aborting\n");
+      exit(1);
     }
+
+    oc->oformat = av_guess_format("rtsp", NULL, NULL);
+    av_strlcpy(oc->filename, filename, sizeof(oc->filename));
 
     if (!oc) {
       exit(1);
@@ -355,7 +357,7 @@ class VideoRtspEncoder {
 
     fmt = oc->oformat;
     if(!fmt) {
-      cout<<"Error creating outformat\n";
+      fprintf(stderr, "Error creating oformat\n");
       exit(1);
     }
     /* Add the audio and video streams using the default format codecs
@@ -382,12 +384,13 @@ class VideoRtspEncoder {
       open_audio(oc, audio_codec, audio_st);*/
 
     av_dump_format(oc, 0, filename, 1);
-    char errorBuff[80];
+    //char errorBuff[80];
 
     if (!(fmt->flags & AVFMT_NOFILE)) {
       ret = avio_open(&oc->pb, filename, AVIO_FLAG_WRITE);
       if (ret < 0) {
-        fprintf(stderr, "Could not open outfile '%s': %s", filename, av_make_error_string(errorBuff,80,ret));
+        //fprintf(stderr, "Could not open outfile '%s': %s", filename, av_make_error_string(errorBuff,80,ret));
+        fprintf(stderr, "Could not open outfile '%s'\n", filename);
         exit(1);
       }
 
@@ -395,7 +398,7 @@ class VideoRtspEncoder {
 
     ret = avformat_write_header(oc, NULL);
     if (ret < 0) {
-      fprintf(stderr, "Error occurred when writing header: %s", av_make_error_string(errorBuff,80,ret));
+      fprintf(stderr, "Error occurred when writing header\n");
       exit(1);
     }
 
