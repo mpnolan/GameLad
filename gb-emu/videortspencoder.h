@@ -123,7 +123,7 @@ class VideoRtspEncoder {
          * identical to 1. */
         c->time_base.den = STREAM_FRAME_RATE;
         c->time_base.num = 1;
-        c->gop_size      = 12; /* emit one intra frame every twelve frames at most */
+        c->gop_size      = 66; /* emit one intra frame every twelve frames at most */
         c->pix_fmt       = STREAM_PIX_FMT;
         if (c->codec_id == AV_CODEC_ID_MPEG2VIDEO) {
           /* just for testing, we also add B frames */
