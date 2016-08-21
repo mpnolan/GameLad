@@ -27,6 +27,8 @@ extern "C"
 #include <math.h>
 }
 
+#include "credentials.h"
+
 using namespace std;
 
 #define STREAM_DURATION   500.0
@@ -41,7 +43,7 @@ class VideoRtspEncoder {
   static const int sws_flags = SWS_BICUBIC;
 
   public:
-  VideoRtspEncoder() : m_fps(60), m_scale(8) {
+  VideoRtspEncoder() : m_fps(60), m_scale(4) {
   }
 
   void setFps(int fps) {
@@ -306,7 +308,8 @@ class VideoRtspEncoder {
   }
 
   void initialize() {
-    const char *filename = "rtsp://127.0.0.1:8554/live.sdp";
+    //const char *filename = "rtsp://127.0.0.1:8554/live.sdp";
+    const char* filename = "rtsp://" WOWZA_USERNAME ":" WOWZA_PASSWORD "@a2d26d.entrypoint.cloud.wowza.com:1935/app-a275/b020277c";
 
     /* Initialize libavcodec, and register all codecs and formats. */
     av_register_all();
