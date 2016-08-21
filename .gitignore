@@ -260,3 +260,5 @@ _Pvt_Extensions
 # vim
 *.swp
 *.swo
+
+gb-emu/credentials.h
