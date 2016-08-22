@@ -110,7 +110,7 @@ class VideoRtspEncoder {
         c->channels    = 2;
         break;
 
-      case AVMEDIA_TYPE_VIDEO:
+      case AVMEDIA_TYPE_VIDEO: {
         c->codec_id = codec_id;
         //if(codec_id == CODEC_ID_H264) cout<<"Codec ID  "<<(AVCodecID)codec_id<<endl;
         c->bit_rate = 400000;
@@ -127,7 +127,12 @@ class VideoRtspEncoder {
         st->time_base.num = 1;
         c->gop_size      = 10; /* Wowza says to make it fps or 2*fps */
         c->pix_fmt       = STREAM_PIX_FMT;
-        if (c->codec_id == AV_CODEC_ID_MPEG2VIDEO) {
+
+        // Print codec information
+        const AVCodecDescriptor* desc = avcodec_descriptor_get(c->codec_id);
+        std::cout << "Codec is " << desc->long_name << std::endl;
+
+        if (c->codec_id == AV_CODEC_ID_MPEG4) {
           /* just for testing, we also add B frames */
           c->max_b_frames = 2;
         }
@@ -138,6 +143,7 @@ class VideoRtspEncoder {
           c->mb_decision = 2;
         }
         break;
+     }
 
       default:
         break;
