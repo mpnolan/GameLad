@@ -125,7 +125,7 @@ class VideoRtspEncoder {
         c->time_base.num = 1;
         st->time_base.den = m_fps;
         st->time_base.num = 1;
-        c->gop_size      = 2 * m_fps; /* Wowza says to make it fps or 2*fps */
+        c->gop_size      = 10; /* Wowza says to make it fps or 2*fps */
         c->pix_fmt       = STREAM_PIX_FMT;
         if (c->codec_id == AV_CODEC_ID_MPEG2VIDEO) {
           /* just for testing, we also add B frames */
